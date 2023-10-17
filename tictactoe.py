@@ -23,15 +23,15 @@ def player(board):
     """
     Returns player who has the next turn on a board.
     """
-    total_moves = sum(row.count(X) + row.count(O) for row in board)
-    return X if total_moves % 2 == 0 else O
+    total_actions = sum(row.count(X) + row.count(O) for row in board)
+    return X if total_actions % 2 == 0 else O
 
 def actions(board):
     """
     Returns set of all possible actions (i, j) available on the board.
     """
-    actions_list = [(i,j) for i in range(3) for j in range(3) if board[i][j] is EMPTY]     
-    return set(actions_list)
+    possible_actions = [(i,j) for i in range(3) for j in range(3) if board[i][j] is EMPTY]     
+    return set(possible_actions)
 
 
 def result(board, action) -> list:
@@ -48,7 +48,6 @@ def result(board, action) -> list:
     result_board = copy.deepcopy(board)
     result_board[i][j] = current_player
     return result_board
-
 
 
 def winner(board):
@@ -82,7 +81,7 @@ def terminal(board):
         return True
     
     remaining_actions = actions(board)
-    if not remaining_actions or len(remaining_actions) == 0:
+    if not remaining_actions:
         return True
     
     return False
@@ -92,10 +91,10 @@ def utility(board) -> int:
     """
     Returns 1 if X has won the game, -1 if O has won, 0 otherwise.
     """
-    win = winner(board)
-    if win == X:
+    game_winner = winner(board)
+    if game_winner == X:
         return 1
-    elif win == O:
+    elif game_winner == O:
         return -1
     else:
         return 0
@@ -108,56 +107,56 @@ def minimax(board):
     if terminal(board):
         return None
     
-    moves = actions(board)
-    best_move = None
+    available_actions = actions(board)
+    best_action = None
     alpha = -math.inf
     beta = math.inf
 
     if player(board) == X:
-        best_v = -math.inf
-        for move in moves:
-            v = max_value(result(board, move), alpha, beta)
-            if v > best_v:
-                best_v = v
-                best_move = move
+        best_score = -math.inf
+        for action in available_actions:
+            score = max_value(result(board, action), alpha, beta)
+            if score > best_score:
+                best_score = score
+                best_action = action
     else:
-        best_v = math.inf
-        for move in moves:
-            v = min_value(result(board, move), alpha, beta)
-            if v < best_v:
-                best_v = v
-                best_move = move
+        best_score = math.inf
+        for action in available_actions:
+            score = min_value(result(board, action), alpha, beta)
+            if score < best_score:
+                best_score = score
+                best_action = action
 
-    return best_move
+    return best_action
 
 def max_value(board, alpha, beta):
     if terminal(board):
         return utility(board)
 
-    v = -math.inf
-    moves = actions(board)
-    if  len(moves) == 0:
+    score = -math.inf
+    available_actions = actions(board)
+    if not available_actions:
         return utility(board)
 
-    for move in moves:
-        v = max(v, min_value(result(board, move), alpha, beta))
-        alpha = max(alpha, v)
+    for action in available_actions:
+        score = max(score, min_value(result(board, action), alpha, beta))
+        alpha = max(alpha, score)
         if beta <= alpha:
             break
-    return v
+    return score
 
 def min_value(board, alpha, beta):
     if terminal(board):
         return utility(board)
 
-    v = math.inf
-    moves = actions(board)
-    if len(moves) == 0:
+    score = math.inf
+    available_actions = actions(board)
+    if not available_actions:
         return utility(board)
 
-    for move in moves:
-        v = min(v, max_value(result(board, move), alpha, beta))
-        beta = min(beta, v)
+    for action in available_actions:
+        score = min(score, max_value(result(board, action), alpha, beta))
+        beta = min(beta, score)
         if beta <= alpha:
             break
-    return v
+    return score
